@@ -15,10 +15,10 @@ public class DocumentBulkSerializer {
                         "\"publication year\": 1988\n" +
                         "}";
         Document document = Document.parse(json);
-        DocumentBulk origin = new DocumentBulk();
-        origin.add(document);
-        DocumentBulkSerializer serializer = DocumentBulkSerializer.INSTANCE;
-        byte[] bytes = serializer.serialize(origin);
+//        DocumentBulk origin = new DocumentBulk();
+//        origin.add(document);
+//        DocumentBulkSerializer serializer = DocumentBulkSerializer.INSTANCE;
+//        byte[] bytes = serializer.serialize(origin);
 //        assertEquals(origin, serializer.deserialize(serializer.getVersion(), bytes));
     }
 
