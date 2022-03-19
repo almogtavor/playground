@@ -17,7 +17,7 @@ public class AsyncClient {
                     }
 
                     if (ThreadLocalRandom.current().nextFloat() < 0.001f) {
-                        throw new RuntimeException("wahahahaha...");
+                        throw new RuntimeException("runtime error...");
                     } else {
                         return "key" + (key % 10);
                     }
