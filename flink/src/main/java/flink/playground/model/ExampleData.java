@@ -7,8 +7,8 @@ import java.util.Date;
 
 @AllArgsConstructor
 @Data
-public class Son {
+public class ExampleData {
     private String itemId;
     private Date receptionTime;
-    private String opId;
+    private String hopId;
 }

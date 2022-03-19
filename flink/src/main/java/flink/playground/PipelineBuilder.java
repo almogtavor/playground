@@ -1,32 +1,28 @@
 package flink.playground;
 
+import flink.playground.model.ExampleData;
 import lombok.SneakyThrows;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.RestOptions;
-import org.apache.flink.runtime.minicluster.MiniCluster;
-import org.apache.flink.runtime.minicluster.MiniClusterConfiguration;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.datagen.DataGeneratorSource;
-import org.apache.flink.streaming.api.graph.StreamGraph;
-import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.async.AsyncFunction;
-import org.apache.flink.streaming.api.functions.async.ResultFuture;
-import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.springframework.stereotype.Component;
 //import org.mongoflink.config.MongoOptions;
 
+import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-
-import static com.mongodb.internal.client.model.AggregationLevel.COLLECTION;
-
 @Component
 public class PipelineBuilder {
+    private KafkaSource<ExampleData> kafkaSource;
+
+    public PipelineBuilder(KafkaSource<ExampleData> kafkaSource) {
+        this.kafkaSource = kafkaSource;
+    }
+
     @SneakyThrows
     public void flow() {
 
@@ -39,19 +35,12 @@ public class PipelineBuilder {
         env.getCheckpointConfig().setCheckpointInterval(1000L);
 
         // create input stream of a single integer
-//        DataStream<Integer> inputStream = env.addSource(new SimpleSource());
-//        env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
-//        FlinkKafkaConsumer<MyType> kafkaSource = new FlinkKafkaConsumer<>("myTopic", schema, props);
-//        kafkaSource.assignTimestampsAndWatermarks(
-//                WatermarkStrategy
-//                        .forBoundedOutOfOrderness(Duration.ofSeconds(20)));
-//
-//        DataStream<MyType> stream = env.addSource(kafkaSource);
+        DataStream<ExampleData> inputStream = env.fromSource(kafkaSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(20)), "Kafka Source");
 
-        AsyncFunction<Integer, String> function = new SampleAsyncFunction();
+        AsyncFunction<ExampleData, ExampleData> function = new SampleAsyncFunction();
 
         // add async operator to streaming job
-        DataStream<String> result;
+        DataStream<ExampleData> result;
         switch (mode.toUpperCase()) {
             case "ORDERED":
                 result =

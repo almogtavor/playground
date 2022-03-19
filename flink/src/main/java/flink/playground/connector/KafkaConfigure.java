@@ -1,5 +1,7 @@
 package flink.playground.connector;
 
+import flink.playground.model.ExampleData;
+import flink.playground.serialization.ExampleDataSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
@@ -12,13 +14,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KafkaConfigure {
     @Bean
-    public KafkaSource<String> kafkaSource() {
-        return KafkaSource.<String>builder()
+    public KafkaSource<ExampleData> kafkaSource() {
+        return KafkaSource.<ExampleData>builder()
                 .setBootstrapServers("brokers")
                 .setTopics("input-topic")
                 .setGroupId("my-group")
                 .setStartingOffsets(OffsetsInitializer.earliest())
-                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .setValueOnlyDeserializer(new ExampleDataSchema())
                 .build();
     }
     @Bean
