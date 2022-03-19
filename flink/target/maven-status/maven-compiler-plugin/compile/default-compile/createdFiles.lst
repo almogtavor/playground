@@ -1,0 +1,5 @@
+flink\playground\transformation\SampleFunction.class
+flink\playground\transformation\KafkaAsyncSink.class
+flink\playground\model\ExampleData.class
+flink\playground\transformation\AsyncClient.class
+flink\playground\configuration\Environment.class

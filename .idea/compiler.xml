@@ -8,14 +8,16 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="flink-playground" />
-        <module name="playground" />
+        <module name="data-pipelines-samples-flink" />
+        <module name="data-pipelines-samples-reactive-spring-integration" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="data-pipelines-samples" options="" />
+      <module name="data-pipelines-samples-flink" options="" />
       <module name="flink-playground" options="-parameters" />
-      <module name="playground" options="-parameters" />
     </option>
   </component>
 </project>

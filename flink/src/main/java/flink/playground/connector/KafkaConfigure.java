@@ -1,7 +1,8 @@
 package flink.playground.connector;
 
 import flink.playground.model.ExampleData;
-import flink.playground.serialization.ExampleDataSchema;
+import flink.playground.serialization.JsonSerializer;
+import flink.playground.serialization.JsonDeserializer;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
@@ -20,16 +21,16 @@ public class KafkaConfigure {
                 .setTopics("input-topic")
                 .setGroupId("my-group")
                 .setStartingOffsets(OffsetsInitializer.earliest())
-                .setValueOnlyDeserializer(new ExampleDataSchema())
+                .setValueOnlyDeserializer(new JsonDeserializer(ExampleData.class))
                 .build();
     }
     @Bean
-    public KafkaSink<String> kafkaSink() {
-        return KafkaSink.<String>builder()
+    public KafkaSink<ExampleData> kafkaSink() {
+        return KafkaSink.<ExampleData>builder()
                 .setBootstrapServers("brokers")
                 .setRecordSerializer(KafkaRecordSerializationSchema.builder()
                         .setTopic("topic-name")
-                        .setValueSerializationSchema(new SimpleStringSchema())
+                        .setValueSerializationSchema(new JsonSerializer(ExampleData.class))
                         .build()
                 )
                 .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)

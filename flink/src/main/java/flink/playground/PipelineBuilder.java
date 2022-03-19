@@ -8,12 +8,17 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.async.AsyncFunction;
+import org.apache.flink.streaming.api.functions.source.datagen.DataGeneratorSource;
+import org.mongoflink.config.MongoOptions;
+import org.mongoflink.sink.MongoSink;
 import org.springframework.stereotype.Component;
 //import org.mongoflink.config.MongoOptions;
 
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import static flink.playground.db.MongoTestDB.*;
 
 @Component
 public class PipelineBuilder {
@@ -37,29 +42,29 @@ public class PipelineBuilder {
         // create input stream of a single integer
         DataStream<ExampleData> inputStream = env.fromSource(kafkaSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(20)), "Kafka Source");
 
-        AsyncFunction<ExampleData, ExampleData> function = new SampleAsyncFunction();
+//        AsyncFunction<ExampleData, ExampleData> function = new SampleAsyncFunction();
 
         // add async operator to streaming job
         DataStream<ExampleData> result;
-        switch (mode.toUpperCase()) {
-            case "ORDERED":
-                result =
-                        AsyncDataStream.orderedWait(
-                                inputStream, function, timeout, TimeUnit.MILLISECONDS, 20);
-                break;
-            case "UNORDERED":
-                result =
-                        AsyncDataStream.unorderedWait(
-                                inputStream, function, timeout, TimeUnit.MILLISECONDS, 20);
-                break;
-            default:
-                throw new IllegalStateException("Unknown mode: " + mode);
-        }
+//        switch (mode.toUpperCase()) {
+//            case "ORDERED":
+//                result =
+//                        AsyncDataStream.orderedWait(
+//                                inputStream, function, timeout, TimeUnit.MILLISECONDS, 20);
+//                break;
+//            case "UNORDERED":
+//                result =
+//                        AsyncDataStream.unorderedWait(
+//                                inputStream, function, timeout, TimeUnit.MILLISECONDS, 20);
+//                break;
+//            default:
+//                throw new IllegalStateException("Unknown mode: " + mode);
+//        }
 
-        result.print();
+//        result.print();
 
         // execute the program
-        env.execute("Async IO Example: " + mode);
+//        env.execute("Async IO Example: " + mode);
 
 
 
@@ -70,13 +75,13 @@ public class PipelineBuilder {
         long rows = 1000L;
 
         Properties properties = new Properties();
-//        properties.setProperty(MongoOptions.SINK_TRANSACTION_ENABLED, "false");
-//        properties.setProperty(MongoOptions.SINK_FLUSH_ON_CHECKPOINT, "false");
-//        properties.setProperty(MongoOptions.SINK_FLUSH_SIZE, String.valueOf(1_000L));
-//        properties.setProperty(MongoOptions.SINK_FLUSH_INTERVAL, String.valueOf(10_000L));
+        properties.setProperty(MongoOptions.SINK_TRANSACTION_ENABLED, "false");
+        properties.setProperty(MongoOptions.SINK_FLUSH_ON_CHECKPOINT, "false");
+        properties.setProperty(MongoOptions.SINK_FLUSH_SIZE, String.valueOf(1_000L));
+        properties.setProperty(MongoOptions.SINK_FLUSH_INTERVAL, String.valueOf(10_000L));
 //
 //        env.addSource(new DataGeneratorSource<>(new StringGenerator(), rps, rows))
-//                .returns(String.class)
+//                .returns(ExampleData.class)
 //                .sinkTo(new MongoSink<>(CONNECT_STRING, DATABASE_NAME, COLLECTION,
 //                        new StringDocumentSerializer(), properties));
 //        StreamGraph streamGraph = env.getStreamGraph();
