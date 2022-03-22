@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 /**
  * Base interface for developing a sink. A basic {@link Sink} is a stateless sink that can flush
  * data on checkpoint to achieve at-least-once consistency. Sinks with additional requirements
- * should implement {@link StatefulSink} or {@link TwoPhaseCommittingSink}.
+ * should implement {@link StatefulSink} or TwoPhaseCommittingSink.
  *
  * <p>The {@link Sink} needs to be serializable. All configuration should be validated eagerly. The
  * respective sink writers are transient and will only be created in the subtasks on the

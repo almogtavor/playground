@@ -7,9 +7,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="data-pipelines-samples-reactive-spring-integration" />
         <module name="flink-playground" />
         <module name="data-pipelines-samples-flink" />
-        <module name="data-pipelines-samples-reactive-spring-integration" />
       </profile>
     </annotationProcessing>
   </component>

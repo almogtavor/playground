@@ -1,19 +1,21 @@
-//package flink.playground.connector;
-//
-//import flink.playground.async.sink.AsyncSinkBase;
-//import flink.playground.async.sink.AsyncSinkWriter;
-//import flink.playground.async.sink.ElementConverter;
-//import flink.playground.model.ExampleData;
-//import org.apache.flink.core.io.SimpleVersionedSerializer;
-//import org.bson.Document;
-//
-//import java.io.IOException;
-//import java.util.ArrayList;
-//import java.util.Collection;
-//import java.util.Collections;
-//
-//public class MongoSink extends AsyncSinkWriter<ExampleData, Document> {
-//
+package flink.playground.connector;
+
+import flink.playground.async.sink.AsyncSinkBase;
+import flink.playground.async.sink.BufferedRequestState;
+import flink.playground.async.sink.ElementConverter;
+import flink.playground.model.ExampleData;
+import org.apache.flink.core.io.SimpleVersionedSerializer;
+import org.bson.Document;
+
+import java.io.IOException;
+import java.util.Collection;
+
+public class MongoDbSink extends AsyncSinkBase<ExampleData, Document> {
+
+    protected MongoDbSink(ElementConverter<ExampleData, Document> elementConverter, int maxBatchSize, int maxInFlightRequests, int maxBufferedRequests, long maxBatchSizeInBytes, long maxTimeInBufferMS, long maxRecordSizeInBytes) {
+        super(elementConverter, maxBatchSize, maxInFlightRequests, maxBufferedRequests, maxBatchSizeInBytes, maxTimeInBufferMS, maxRecordSizeInBytes);
+    }
+
 //    @Override
 //    protected void submitRequestEntries(List<PutRecordsRequestEntry> requestEntries, ResultFuture<PutRecordsRequestEntry> requestResult) {
 //
@@ -47,4 +49,19 @@
 //            //TODO: handle errors of the entire request...
 //        });
 //    }
-//}
+
+    @Override
+    public StatefulSinkWriter<ExampleData, BufferedRequestState<Document>> createWriter(InitContext context) throws IOException {
+        return null;
+    }
+
+    @Override
+    public StatefulSinkWriter<ExampleData, BufferedRequestState<Document>> restoreWriter(InitContext context, Collection<BufferedRequestState<Document>> recoveredState) throws IOException {
+        return null;
+    }
+
+    @Override
+    public SimpleVersionedSerializer<BufferedRequestState<Document>> getWriterStateSerializer() {
+        return null;
+    }
+}

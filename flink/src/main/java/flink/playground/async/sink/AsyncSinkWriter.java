@@ -1,11 +1,11 @@
 package flink.playground.async.sink;
 
+import com.mongodb.client.model.WriteModel;
 import flink.playground.async.sink.sink2.Sink;
 import flink.playground.async.sink.sink2.StatefulSink;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.operators.MailboxExecutor;
 import org.apache.flink.metrics.Counter;
-import org.apache.flink.metrics.groups.SinkWriterMetricGroup;
 import org.apache.flink.util.Preconditions;
 
 import java.io.IOException;
@@ -274,7 +274,8 @@ public abstract class AsyncSinkWriter<InputT, RequestEntryT extends Serializable
                         maxBatchSize * maxInFlightRequests,
                         maxBatchSize * maxInFlightRequests);
 
-        this.metrics = context.metricGroup();
+        // TODO: fix this: (SinkWriterMetricGroup)
+        this.metrics = (SinkWriterMetricGroup) context.metricGroup();
         this.metrics.setCurrentSendTimeGauge(() -> this.ackTime - this.lastSendTimestamp);
         this.numBytesSendCounter = this.metrics.getNumBytesSendCounter();
         this.numRecordsSendCounter = this.metrics.getNumRecordsSendCounter();

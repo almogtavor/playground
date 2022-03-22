@@ -1,8 +1,10 @@
 package flink.playground;
 
 import flink.playground.model.ExampleData;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
@@ -11,6 +13,8 @@ import org.apache.flink.streaming.api.functions.async.AsyncFunction;
 import org.apache.flink.streaming.api.functions.source.datagen.DataGeneratorSource;
 import org.mongoflink.config.MongoOptions;
 import org.mongoflink.sink.MongoSink;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 //import org.mongoflink.config.MongoOptions;
 
@@ -21,12 +25,10 @@ import java.util.concurrent.TimeUnit;
 import static flink.playground.db.MongoTestDB.*;
 
 @Component
-public class PipelineBuilder {
-    private KafkaSource<ExampleData> kafkaSource;
-
-    public PipelineBuilder(KafkaSource<ExampleData> kafkaSource) {
-        this.kafkaSource = kafkaSource;
-    }
+@AllArgsConstructor
+public class PipelineBuilder implements ApplicationRunner {
+    private final KafkaSource<ExampleData> kafkaSource;
+    private final KafkaSink<ExampleData> kafkaSink;
 
     @SneakyThrows
     public void flow() {
@@ -40,12 +42,16 @@ public class PipelineBuilder {
         env.getCheckpointConfig().setCheckpointInterval(1000L);
 
         // create input stream of a single integer
-        DataStream<ExampleData> inputStream = env.fromSource(kafkaSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(20)), "Kafka Source");
+        DataStream<ExampleData> inputStream = env
+                .fromSource(kafkaSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(20)), "Kafka Source");
 
+        inputStream.keyBy().sinkTo(kafkaSink);
+
+        inputStream.print();
 //        AsyncFunction<ExampleData, ExampleData> function = new SampleAsyncFunction();
 
         // add async operator to streaming job
-        DataStream<ExampleData> result;
+//        DataStream<ExampleData> result;
 //        switch (mode.toUpperCase()) {
 //            case "ORDERED":
 //                result =
@@ -64,21 +70,21 @@ public class PipelineBuilder {
 //        result.print();
 
         // execute the program
-//        env.execute("Async IO Example: " + mode);
+        env.execute("Async IO Example: " + mode);
 
 
 
 
         // if these rows are not multiple times of rps, there would be the records remaining not flushed
         // after the last checkpoint
-        long rps = 50;
-        long rows = 1000L;
-
-        Properties properties = new Properties();
-        properties.setProperty(MongoOptions.SINK_TRANSACTION_ENABLED, "false");
-        properties.setProperty(MongoOptions.SINK_FLUSH_ON_CHECKPOINT, "false");
-        properties.setProperty(MongoOptions.SINK_FLUSH_SIZE, String.valueOf(1_000L));
-        properties.setProperty(MongoOptions.SINK_FLUSH_INTERVAL, String.valueOf(10_000L));
+//        long rps = 50;
+//        long rows = 1000L;
+//
+//        Properties properties = new Properties();
+//        properties.setProperty(MongoOptions.SINK_TRANSACTION_ENABLED, "false");
+//        properties.setProperty(MongoOptions.SINK_FLUSH_ON_CHECKPOINT, "false");
+//        properties.setProperty(MongoOptions.SINK_FLUSH_SIZE, String.valueOf(1_000L));
+//        properties.setProperty(MongoOptions.SINK_FLUSH_INTERVAL, String.valueOf(10_000L));
 //
 //        env.addSource(new DataGeneratorSource<>(new StringGenerator(), rps, rows))
 //                .returns(ExampleData.class)
@@ -99,5 +105,10 @@ public class PipelineBuilder {
 //            miniCluster.start();
 //            miniCluster.executeJobBlocking(streamGraph.getJobGraph());
 //        }
+    }
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        flow();
     }
 }
