@@ -7,6 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Data;
 import software.amazon.awssdk.regions.Region;
 
+/**
+ * The S3Mock details are:
+ * accessKeyId =
+ */
 @ConfigurationProperties(prefix = "aws.s3")
 @Data
 public class S3ClientConfigurationProperties {
@@ -18,7 +22,6 @@ public class S3ClientConfigurationProperties {
     private String secretAccessKey;
 
     // Bucket name we'll be using as our backend storage
-    private String bucket;
 
     // AWS S3 requires that file parts must have at least 5MB, except
     // for the last part. This may change for other S3-compatible services, so let't

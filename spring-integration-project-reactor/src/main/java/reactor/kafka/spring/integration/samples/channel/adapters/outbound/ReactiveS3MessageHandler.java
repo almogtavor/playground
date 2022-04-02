@@ -1,4 +1,4 @@
-package reactor.kafka.spring.integration.samples.config;
+package reactor.kafka.spring.integration.samples.channel.adapters.outbound;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
@@ -43,6 +43,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.kafka.spring.integration.samples.config.S3ClientConfigurationProperties;
 import reactor.kafka.spring.integration.samples.dto.UploadResult;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -62,11 +63,11 @@ import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 @Slf4j
 public class ReactiveS3MessageHandler extends AbstractReactiveMessageHandler {
     private final S3AsyncClient s3client;
-    private final S3ClientConfigurationProperties s3config;
+    private final String bucketName;
 
-    public ReactiveS3MessageHandler(S3AsyncClient s3client, S3ClientConfigurationProperties s3config) {
+    public ReactiveS3MessageHandler(S3AsyncClient s3client, String bucketName) {
         this.s3client = s3client;
-        this.s3config = s3config;
+        this.bucketName = bucketName;
     }
 
     @Override
@@ -88,7 +89,7 @@ public class ReactiveS3MessageHandler extends AbstractReactiveMessageHandler {
         ByteBuffer wrap = ByteBuffer.wrap(message.getPayload().toString().getBytes());
         CompletableFuture<PutObjectResponse> future = s3client
                 .putObject(PutObjectRequest.builder()
-                                .bucket(s3config.getBucket())
+                                .bucket(bucketName)
 //                                .contentLength(length)
                                 .key(fileKey.toString())
 //                                .contentType(mediaType.toString())

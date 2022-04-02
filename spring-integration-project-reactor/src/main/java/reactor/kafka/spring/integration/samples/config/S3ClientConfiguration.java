@@ -1,5 +1,6 @@
 package reactor.kafka.spring.integration.samples.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,5 +51,11 @@ public class S3ClientConfiguration {
             b = b.endpointOverride(s3props.getEndpoint());
         }
         return b.build();
+    }
+
+    @ConditionalOnProperty(prefix = "s3.enabled")
+    @Bean("bucketName")
+    public String getBucketName(S3ClientConfigurationProperties s3ClientConfigurationProperties) {
+        return s3ClientConfigurationProperties.getBucket();
     }
 }
