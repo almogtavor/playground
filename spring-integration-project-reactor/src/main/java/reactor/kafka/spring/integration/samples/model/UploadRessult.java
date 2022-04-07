@@ -1,4 +1,4 @@
-package reactor.kafka.spring.integration.samples.dto;
+package reactor.kafka.spring.integration.samples.model;
 
 import java.util.List;
 

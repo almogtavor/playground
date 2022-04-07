@@ -1,14 +1,15 @@
-package reactor.kafka.spring.integration.samples.dto;
+package reactor.kafka.spring.integration.samples.model;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JsonRootName("FakeProducer")
-public class ProducerPojo {
+@JsonRootName("FakeConsumer")
+public class ConsumerPojo {
     @JsonProperty("id")
     private String id;
 
-    public ProducerPojo(String id) {
+    public ConsumerPojo(String id) {
         this.id = id;
     }
 
@@ -22,7 +23,7 @@ public class ProducerPojo {
 
     @Override
     public String toString() {
-        return "FakeProducerDTO{" +
+        return "FakeConsumerDTO{" +
                 "id='" + id + '\'' +
                 '}';
     }

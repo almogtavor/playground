@@ -53,9 +53,9 @@ public class S3ClientConfiguration {
         return b.build();
     }
 
-    @ConditionalOnProperty(prefix = "s3.enabled")
-    @Bean("bucketName")
-    public String getBucketName(S3ClientConfigurationProperties s3ClientConfigurationProperties) {
-        return s3ClientConfigurationProperties.getBucket();
-    }
+//    @ConditionalOnProperty(prefix = "s3.enabled")
+//    @Bean("bucketName")
+//    public String getBucketName(S3ClientConfigurationProperties s3ClientConfigurationProperties) {
+//        return s3ClientConfigurationProperties.getBucket();
+//    }
 }
