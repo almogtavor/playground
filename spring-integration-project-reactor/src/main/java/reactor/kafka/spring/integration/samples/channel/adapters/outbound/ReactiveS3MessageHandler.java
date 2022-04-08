@@ -1,8 +1,16 @@
 package reactor.kafka.spring.integration.samples.channel.adapters.outbound;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.expression.Expression;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReactiveMessageHandler;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
@@ -19,36 +27,70 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 @Slf4j
 public class ReactiveS3MessageHandler extends AbstractReactiveMessageHandler {
     private final S3AsyncClient s3client;
-    private final String bucketName;
+    private Expression bucketNameExpression;
+    private boolean expectReply;
 
-    public ReactiveS3MessageHandler(S3AsyncClient s3client, String bucketName) {
+    public ReactiveS3MessageHandler(S3AsyncClient s3client, Expression bucketName) {
         this.s3client = s3client;
-        this.bucketName = bucketName;
+        this.bucketNameExpression = bucketName;
     }
+
+    public ReactiveS3MessageHandler(S3AsyncClient s3client) {
+        this.s3client = s3client;
+    }
+
+    /**
+     * Set the SpEL {@link Expression} that should resolve to a bucket name
+     * used by {@link S3AsyncClient} to store data
+     * @param bucketNameExpression The bucket name expression.
+     */
+    public void setBucketNameExpression(Expression bucketNameExpression) {
+        Assert.notNull(bucketNameExpression, "'bucketNameExpression' must not be null");
+        this.bucketNameExpression = bucketNameExpression;
+    }
+
+    public boolean isExpectReply() {
+        return this.expectReply;
+    }
+
+    public void setExpectReply(boolean expectReply) {
+        this.expectReply = expectReply;
+    }
+
+    public IntegrationPatternType getIntegrationPatternType() {
+        return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
+    }
+
+    protected Object getReply(ResponseEntity<?> httpResponse) {
+        HttpHeaders httpHeaders = httpResponse.getHeaders();
+        Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
+        if (this.transferCookies) {
+            this.doConvertSetCookie(headers);
+        }
+
+        MessageBuilderFactory messageBuilderFactory = this.getMessageBuilderFactory();
+        AbstractIntegrationMessageBuilder replyBuilder;
+        if (httpResponse.hasBody() && this.extractResponseBody) {
+            Object responseBody = httpResponse.getBody();
+            replyBuilder = responseBody instanceof Message ? messageBuilderFactory.fromMessage((Message)responseBody) : messageBuilderFactory.withPayload(responseBody);
+        } else {
+            replyBuilder = messageBuilderFactory.withPayload(httpResponse);
+        }
+
+        replyBuilder.setHeader("http_statusCode", httpResponse.getStatusCode());
+        return replyBuilder.copyHeaders(headers);
+    }
+
 
     @Override
     protected Mono<Void> handleMessageInternal(Message<?> message) {
-//        long length = message.getHeaders().getl();
-//        if (length < 0) {
-//            throw new UploadFailedException(HttpStatus.BAD_REQUEST.value(), Optional.of("required header missing: Content-Length"));
-//        }
-
         String fileKey = UUID.randomUUID().toString();
         Map<String, String> metadata = new HashMap<String, String>();
-//        MediaType mediaType = headers.getContentType();
-//
-//        if (mediaType == null) {
-//            mediaType = MediaType.APPLICATION_OCTET_STREAM;
-//        }
-
-//        log.info("[I95] uploadHandler: mediaType{}, length={}", mediaType, length);
         ByteBuffer wrap = ByteBuffer.wrap(message.getPayload().toString().getBytes());
         CompletableFuture<PutObjectResponse> future = s3client
                 .putObject(PutObjectRequest.builder()
-                                .bucket(bucketName)
-//                                .contentLength(length)
-                                .key(fileKey.toString())
-//                                .contentType(mediaType.toString())
+                                .bucket(bucketNameExpression.getExpressionString())
+                                .key(fileKey)
                                 .metadata(metadata)
                                 .build(),
                         AsyncRequestBody.fromPublisher(Mono.just(wrap)));
