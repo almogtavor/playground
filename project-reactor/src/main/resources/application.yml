@@ -1,0 +1,36 @@
+spring:
+    reactor:
+        kafka:
+            receiver:
+                topic: Topic000001
+                subscribe-topics: Topic002
+                commit-interval: 30000
+            sender:
+                stop-on-error: true
+    kafka:
+        topic:
+            consumer: Topic01
+            producer: Topic01
+        producer:
+            value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
+            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+            bootstrap-servers: localhost:9092
+        consumer:
+            group-id: reactive-kafka-spring-integration-sample
+            auto-offset-reset: latest
+            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+            bootstrap-servers: localhost:9092
+        bootstrap-servers: localhost:9092
+        properties:
+            spring:
+                json:
+                    trusted:
+                        packages: 'reactor.kafka.spring.integration.samples'
+server:
+    port: '8090'
+
+s3:
+    limit-in-kb: 500
+    enabled: true
+

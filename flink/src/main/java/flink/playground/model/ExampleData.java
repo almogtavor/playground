@@ -11,4 +11,5 @@ public class ExampleData {
     private String itemId;
     private Date receptionTime;
     private String hopId;
+    private String coolId;
 }
