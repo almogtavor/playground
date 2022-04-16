@@ -1,78 +1,53 @@
 package reactor.kafka.spring.integration.samples.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.http.dsl.Http;
-import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import reactor.kafka.receiver.KafkaReceiver;
+import reactor.kafka.receiver.ReceiverOptions;
+import reactor.kafka.receiver.ReceiverRecord;
 import reactor.kafka.spring.integration.samples.channel.adapters.outbound.ReactiveS3MessageHandler;
-import reactor.kafka.spring.integration.samples.channel.adapters.outbound.ReactiveSolrMessageHandler;
 import reactor.kafka.spring.integration.samples.model.ExampleData;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
-import java.util.List;
-import java.util.Map;
+import java.io.DataInput;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
-public class FlowBuilder extends IntegrationFlowAdapter {
-    public ReactiveKafkaConsumerTemplate<String, String> reactiveKafkaConsumerTemplate;
+public class FlowBuilder implements ApplicationRunner {
+    public ReceiverOptions<String, String> receiverOptions;
     public S3AsyncClient s3client;
     public String bucketName = "fajifjaie";
+    ObjectMapper mapper = new ObjectMapper();
 
-    @Override
-    protected IntegrationFlowDefinition<?> buildFlow() {
-        Function<String, String> mapper = String::toUpperCase;
-
-//        TaskExecutor taskExecutor = new TaskExecutorAdapter()
-        return from(reactiveKafkaConsumerTemplate.receiveAutoAck()
-                .map(GenericMessage::new))
-                .<ConsumerRecord<String, String>, String>transform(ConsumerRecord::value)
-                .transform(Transformers.fromJson(ExampleData.class))
-                .enrich(enricher -> enricher
-                        .<Map<String, ?>>requestPayload(message ->
-                                ((List<?>) message.getPayload().get("attributeIds"))
-                                        .stream()
-                                        .map(Object::toString)
-                                        .collect(Collectors.joining(",")))
-                        .requestSubFlow(subFlow ->
-                                subFlow.handle(
-                                        Http.outboundGateway("/attributes?id={ids}", restTemplate)
-                                                .httpMethod(HttpMethod.GET)
-                                                .expectedResponseType(Map.class)
-                                                .uriVariable("ids", "payload")))
-                        .propertyExpression("attributes", "payload.attributes"))
-                .fluxTransform(messageFlux -> messageFlux.map(mapper))
-//                .<Message, String>transform(message -> message.getHeaders().getId())
-//                .<String, String>transform(String::toUpperCase)
-//                .publishSubscribeChannel(s -> s
-//                        .subscribe(f -> f
-//                                .handle(new ReactiveS3MessageHandler(s3client, new LiteralExpression(bucketName))))
-//                        .subscribe(f -> f
-//                                .handle(new ReactiveSolrMessageHandler()))
-//                );
+    private Optional<?> getObject(ReceiverRecord<String, String> receiverRecord) {
+        try {
+            return Optional.of(mapper.readValue(receiverRecord.value(), ExampleData.class));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
 
     @Bean
@@ -95,5 +70,30 @@ public class FlowBuilder extends IntegrationFlowAdapter {
 
     private IntegrationFlow bulkWriteToCockroach() {
         return null;
+    }
+
+    @Override
+    public void run(ApplicationArguments args) {
+        Flux.from(KafkaReceiver.create(receiverOptions)
+                .receive()
+                .map(this::getObject)
+                .mapNotNull(optionalObject -> MessageBuilder
+                        .withPayload(optionalObject.orElseThrow())
+                        .setHeader(MessageHeaders.ID, ((ExampleData) optionalObject.orElseThrow()).getItemId())
+                        .build())
+                .groupBy(message -> Objects.requireNonNull(message.getHeaders().get("ID")))
+                .flatMap(objectMessageGroupedFlux -> objectMessageGroupedFlux
+                        .sort(Comparator.comparing(obj -> ((ExampleData) (obj.getPayload())).getReceptionTime()))
+                        .take(1))
+                .doOnNext(message -> new ReactiveS3MessageHandler(s3client,
+                        new LiteralExpression(String.format("meteor-prod-text3-%s", Objects.requireNonNull(message.getHeaders().getId()))))
+                        .handleMessageInternal(message))
+                .doOnNext(message -> new ReactiveMongoMessageHandler(s3client,
+                        new LiteralExpression(String.format("meteor-prod-text3-%s", Objects.requireNonNull(message.getHeaders().getId()))))
+                        .handleMessageInternal(message))
+                .doOnNext(message -> new ReactiveKafkaMessageHandler(s3client,
+        new LiteralExpression(String.format("meteor-prod-text3-%s", Objects.requireNonNull(message.getHeaders().getId()))))
+                        .handleMessageInternal(message))
+        ).subscribe();
     }
 }

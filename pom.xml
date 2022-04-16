@@ -17,6 +17,7 @@
     <modules>
         <module>flink</module>
         <module>spring-integration-project-reactor</module>
+        <module>project-reactor</module>
     </modules>
 
     <groupId>org.example</groupId>

@@ -1,15 +1,7 @@
 package reactor.kafka.spring.integration.samples.channel.adapters.outbound;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.Expression;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.integration.IntegrationPatternType;
-import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.handler.AbstractReactiveMessageHandler;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
@@ -26,7 +18,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Slf4j
-public class ReactiveS3MessageHandler extends AbstractReactiveMessageHandler {
+public class ReactiveS3MessageHandler {
     private final S3AsyncClient s3client;
     private Expression bucketNameExpression;
     private boolean expectReply;
@@ -50,50 +42,7 @@ public class ReactiveS3MessageHandler extends AbstractReactiveMessageHandler {
         this.bucketNameExpression = bucketNameExpression;
     }
 
-    public boolean isExpectReply() {
-        return this.expectReply;
-    }
-
-    public void setExpectReply(boolean expectReply) {
-        this.expectReply = expectReply;
-    }
-
-    public void setExpectedResponseType(Class<?> expectedResponseType) {
-        Assert.notNull(expectedResponseType, "'expectedResponseType' must not be null");
-        this.setExpectedResponseTypeExpression(new ValueExpression(expectedResponseType));
-    }
-
-    public void setExpectedResponseTypeExpression(Expression expectedResponseTypeExpression) {
-        this.expectedResponseTypeExpression = expectedResponseTypeExpression;
-    }
-
-    public IntegrationPatternType getIntegrationPatternType() {
-        return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
-    }
-
-    protected Object getReply(ResponseEntity<?> httpResponse) {
-        HttpHeaders httpHeaders = httpResponse.getHeaders();
-        Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
-        if (this.transferCookies) {
-            this.doConvertSetCookie(headers);
-        }
-
-        MessageBuilderFactory messageBuilderFactory = this.getMessageBuilderFactory();
-        AbstractIntegrationMessageBuilder replyBuilder;
-        if (httpResponse.hasBody() && this.extractResponseBody) {
-            Object responseBody = httpResponse.getBody();
-            replyBuilder = responseBody instanceof Message ? messageBuilderFactory.fromMessage((Message)responseBody) : messageBuilderFactory.withPayload(responseBody);
-        } else {
-            replyBuilder = messageBuilderFactory.withPayload(httpResponse);
-        }
-
-        replyBuilder.setHeader("http_statusCode", httpResponse.getStatusCode());
-        return replyBuilder.copyHeaders(headers);
-    }
-
-
-    @Override
-    protected Mono<Void> handleMessageInternal(Message<?> message) {
+    public void handleMessageInternal(Message<?> message) {
         String fileKey = UUID.randomUUID().toString();
         Map<String, String> metadata = new HashMap<String, String>();
         ByteBuffer wrap = ByteBuffer.wrap(message.getPayload().toString().getBytes());
@@ -105,6 +54,6 @@ public class ReactiveS3MessageHandler extends AbstractReactiveMessageHandler {
                                 .build(),
                         AsyncRequestBody.fromPublisher(Mono.just(wrap)));
 
-        return Mono.fromFuture(future).then();
+        Mono.fromFuture(future).subscribe();
     }
 }

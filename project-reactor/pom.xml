@@ -19,7 +19,7 @@
 
     </properties>
 
-    <artifactId>data-pipelines-samples-reactive-spring</artifactId>
+    <artifactId>data-pipelines-samples-project-reactor</artifactId>
 
     <dependencyManagement>
         <dependencies>
@@ -39,7 +39,11 @@
             <artifactId>s3</artifactId>
             <scope>compile</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>localstack</artifactId>
+            <version>1.16.3</version>
+        </dependency>
         <dependency>
             <artifactId>netty-nio-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
