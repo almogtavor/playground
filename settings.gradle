@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://repo.spring.io/milestone' }
+        maven { url 'https://repo.spring.io/snapshot' }
+        gradlePluginPortal()
+    }
+}
+rootProject.name = 'data-pipelines-samples'
+include 'flink'
+include 'spring-integration-project-reactor'
+include 'project-reactor'
+include 'schema-solution'
+include 'mapstruct'
+

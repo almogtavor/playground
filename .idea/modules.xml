@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/flink/data-pipelines-samples-flink.iml" filepath="$PROJECT_DIR$/flink/data-pipelines-samples-flink.iml" />
+      <module fileurl="file://$PROJECT_DIR$/project-reactor/data-pipelines-samples-project-reactor.iml" filepath="$PROJECT_DIR$/project-reactor/data-pipelines-samples-project-reactor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/spring-integration-project-reactor/data-pipelines-samples-reactive-spring-integration.iml" filepath="$PROJECT_DIR$/spring-integration-project-reactor/data-pipelines-samples-reactive-spring-integration.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/playground.iml" filepath="$PROJECT_DIR$/.idea/modules/playground.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/schema-solution.generated.iml" filepath="$PROJECT_DIR$/.idea/modules/schema-solution.generated.iml" />
+    </modules>
+  </component>
+</project>

@@ -4,3 +4,4 @@ A project for demonstration of creating data pipelines that consume a Kafka topi
 The same logic is implemented in multiple frameworks:
 * Flink
 * Spring Integration and Project Reactor
+* Project Reactor

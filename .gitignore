@@ -1,2 +1,4 @@
 .idea/sonarlint
 .idea/sonarlint/issuestore/index.pb
+.gradle
+build
