@@ -29,13 +29,13 @@ dependencyManagement {
 dependencies {
     implementation 'com.squareup:javapoet:1.13.0'
     implementation "javax.annotation:jsr250-api:1.0"
-    implementation "org.mapstruct:mapstruct:1.4.0.Final"
-    implementation "org.mapstruct:mapstruct-processor:1.4.0.Final"
     implementation "org.mockito:mockito-junit-jupiter:3.11.2"
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:netty-nio-client'
     implementation 'org.testcontainers:localstack:1.16.3'
     implementation 'org.springframework.integration:spring-integration:5.5.10'
+    implementation "org.mapstruct:mapstruct:1.4.0.Final"
+    implementation "org.mapstruct:mapstruct-processor:1.4.0.Final"
     annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions:0.1.1'
     implementation "org.mapstruct.extensions.spring:mapstruct-spring-annotations:0.1.1"
     annotationProcessor "org.mapstruct.extensions.spring:mapstruct-spring-annotations:0.1.1"

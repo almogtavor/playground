@@ -2,12 +2,18 @@ package real.world.data.pipelines.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
+import org.jetbrains.annotations.NotNull;
+import org.mapstruct.extensions.spring.converter.ConversionServiceAdapter;
 import org.reactivestreams.Publisher;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -25,6 +31,7 @@ import reactor.kafka.receiver.ReceiverRecord;
 import real.world.data.pipelines.channel.adapters.outbound.ReactiveS3MessageHandler;
 import real.world.data.pipelines.config.S3ClientConfigurationProperties;
 import real.world.data.pipelines.model.ExampleData;
+import real.world.data.pipelines.model.ExampleEvent;
 import real.world.data.pipelines.model.File;
 import real.world.data.pipelines.s3.wrapper.S3Partitioner;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -37,7 +44,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Component
@@ -54,6 +60,8 @@ public class Processor implements ApplicationRunner {
     public S3AsyncClient s3client;
     public S3ClientConfigurationProperties s3ClientConfigurationProperties;
     public ReactiveKafkaProducerTemplate reactiveKafkaProducerTemplate;
+    public ConversionServiceAdapter adapter;
+    public ReactiveMongoTemplate reactiveMongoTemplate;
     public String bucketName = "fajifjaie";
     ObjectMapper mapper = new ObjectMapper();
 
@@ -111,14 +119,35 @@ public class Processor implements ApplicationRunner {
                         .groupBy(idToGroupBy)
                         .bufferTimeout(MAX_SIZE, MAX_TIME)
                         .flatMap(this::distinctIdsGroupStrategy)
+                        .flatMap(this::writeToMongo)
+//                        .flatMap(this::writeToSolr)
 //                        .flatMap(this::executeGroupingMechanism)
-//                        .flatMap(this::mapStructParser)
-                        .flatMap((Message<ExampleData> msg) -> writeToKafka(ENRICHMENTS_TOPIC, msg))
+                        .flatMap(Flux::fromIterable)
+                        .flatMap(this::exampleEventMapper)
+                        .flatMap(msg -> writeToKafka(ENRICHMENTS_TOPIC, msg))
                         .flatMap(this::commitToKafka)
                         .filter(message -> !this.enrichmentMessagesFilter(message))
-                        .flatMap((Message<ExampleData> msg) -> writeToKafka(MESSI_TOPIC, msg))
+                        .flatMap(msg -> writeToKafka(MESSI_TOPIC, msg))
                         .flatMap(this::commitToKafka)
         ).subscribe();
+    }
+
+    private Mono<List<Message<ExampleData>>> writeToMongo(List<Message<ExampleData>> messages) {
+        return reactiveMongoTemplate.getCollection("assets_refs").flatMap(mongoCollection -> {
+            List<UpdateOneModel<ExampleData>> operations = messages.stream().map(exampleDataMessage -> {
+                Document doc = new Document();
+                reactiveMongoTemplate.getConverter().write(exampleDataMessage, doc);
+                var filter = getMongoUpsertCondition(exampleDataMessage);
+                return new UpdateOneModel<ExampleData>(filter, new Document("$set", doc), new UpdateOptions().upsert(true));
+            }).toList();
+            return Mono.from(mongoCollection.bulkWrite(operations))
+                    .then(Mono.just(messages));
+        });
+    }
+
+    @NotNull
+    private Document getMongoUpsertCondition(Message<ExampleData> exampleDataMessage) {
+        return new Document("externalId", exampleDataMessage.getPayload().getItemId());
     }
 
     private Flux<List<Message<ExampleData>>> distinctIdsGroupStrategy(List<GroupedFlux<String, Message<ExampleData>>> groupedFluxes) {
@@ -164,13 +193,16 @@ public class Processor implements ApplicationRunner {
                 .thenMany(Flux.fromIterable(listOfDistinctIdsList));
     }
 
-    private Mono<Message<ExampleData>> writeToKafka(String topic, Message<ExampleData> exampleDataMessage) {
+    private Mono<Message<ExampleEvent>> writeToKafka(String topic, Message<ExampleEvent> exampleDataMessage) {
         return reactiveKafkaProducerTemplate.send(topic, exampleDataMessage.getHeaders().getId(), exampleDataMessage.getPayload())
                 .thenReturn(exampleDataMessage);
     }
 
-    private <R> Mono<Message<ExampleData>> mapStructParser(Message<ExampleData> message) {
-        return null;
+    private Mono<Message<ExampleEvent>> exampleEventMapper(Message<ExampleData> message) {
+        return Mono.just(MessageBuilder
+                        .withPayload(adapter.mapExampleDataToExampleEvent(message.getPayload()))
+                        .copyHeaders(message.getHeaders())
+                        .build());
     }
 
     private Mono<Message<ExampleData>> enrichFromS3(Message<ExampleData> message) {
@@ -184,7 +216,7 @@ public class Processor implements ApplicationRunner {
                 .then(Mono.just(message));
     }
 
-    private Mono<Message<ExampleData>> commitToKafka(Message<ExampleData> message) {
+    private Mono<Message<ExampleEvent>> commitToKafka(Message<ExampleEvent> message) {
         return Mono.just(message)
                 .doOnNext(a -> {
                     if (enrichmentMessagesFilter(message)) {
@@ -194,7 +226,7 @@ public class Processor implements ApplicationRunner {
                 });
     }
 
-    private boolean enrichmentMessagesFilter(Message<ExampleData> message) {
+    private boolean enrichmentMessagesFilter(Message<ExampleEvent> message) {
         return Objects.equals(message.getHeaders().get(SOURCE_HEADER_NAME), STAR);
     }
 

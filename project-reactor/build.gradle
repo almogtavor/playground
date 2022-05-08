@@ -31,6 +31,12 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation "org.mapstruct:mapstruct:1.4.0.Final"
+    implementation "org.mapstruct:mapstruct-processor:1.4.0.Final"
+    annotationProcessor 'org.mapstruct.extensions.spring:mapstruct-spring-extensions:0.1.1'
+    implementation "org.mapstruct.extensions.spring:mapstruct-spring-annotations:0.1.1"
+    annotationProcessor "org.mapstruct.extensions.spring:mapstruct-spring-annotations:0.1.1"
+    implementation 'org.mapstruct.extensions.spring:mapstruct-spring-extensions:0.1.1'
     implementation 'com.squareup:javapoet:1.13.0'
     implementation "javax.annotation:jsr250-api:1.0"
     implementation "org.mapstruct:mapstruct:1.4.0.Final"

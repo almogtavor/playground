@@ -19,8 +19,6 @@ L
 bproject-reactor/src/main/java/real/world/data/pipelines/autoconfigure/SenderOptionsCustomizer.java,a\c\aceff944d296b66e7b23a08576bb8a6010396df3
 X
 (gradle/wrapper/gradle-wrapper.properties,f\b\fbe448ebfc3eb2d4e308f6b8b043666f5b57235e
-L
-schema-solution/build.gradle,a\2\a2867e2e182e76aeba538addd11348ab87d7b426
 _
 /spring-integration-project-reactor/build.gradle,9\9\999966dba7bdf387b1aca547ad3c436e1a80cdb4
 †
@@ -33,8 +31,6 @@ oproject-reactor/src/main/java/real/world/data/pipelines/channel/adapters/outbou
 xproject-reactor/src/main/java/real/world/data/pipelines/channel/adapters/outbound/spec/ReactiveS3MessageHandlerSpec.java,1\c\1c5a8aad736280277bf90c1f986b1dc04dc060e1
 •
 eproject-reactor/src/main/java/real/world/data/pipelines/ReactorKafkaSpringIntegrationApplication.java,4\e\4e76ed83b5b114718bca6fe0923b63c218169565
-L
-project-reactor/build.gradle,6\c\6c027fac909ac9c76e0aa3350f50f883a37dd8f1
 w
 Gflink/src/main/java/flink/playground/connector/MongoDbWriteRequest.java,3\e\3eb79b59e748fc6e3e0a1808e48f34ddace60cda
 u
@@ -83,22 +79,14 @@ cspring-integration-project-reactor/src/main/java/real/world/data/pipelines/serv
 rspring-integration-project-reactor/src/test/java/reactor/kafka/spring/integrations/samples/tests/ReactiveTest.java,d\9\d9a7aa78f1c39991a35645afa6c47dbbcf0ed21e
 º
 ‰spring-integration-project-reactor/src/test/java/reactor/kafka/spring/integrations/samples/tests/ReactiveKafkaAutoConfigurationTests.java,2\2\221d54da11397addb7b6ae1c35933af7b92862bc
-?
-settings.gradle,0\5\05efc8b1657769a27696d478ded1e95f38737233
 <
 build.gradle,f\0\f07866736216be0ee2aba49e392191aeae700a35
 B
 flink/build.gradle,b\7\b7e4889fbd5e361c5b09b91905653bfbf218dc4b
-F
-mapstruct/build.gradle,2\1\2161b670ac395f88cba767d9d6464775722a8ce4
-m
-=mapstruct/src/main/java/mapstruct/parser/ConverterConfig.java,6\f\6f2bd101b1f73e94e12e759e8345c743d9c0b2b6
 ^
 .flink/src/main/java/flink/playground/Main.java,b\a\ba6d83d4bd3435dc99d622309b5b1f143f82a522
 Å
 ”spring-integration-project-reactor/src/test/java/reactor/kafka/spring/integrations/samples/tests/ReactiveKafkaAutoConfigurationIntegrationTests.java,a\b\abdcba845daa46ec489ec099072fa6936e2b8585
-\
-,mapstruct/src/main/java/mapstruct/Start.java,6\f\6fd2826890a2f170dcb66d36c9de4381ab186294
 ¢
 rproject-reactor/src/main/java/real/world/data/pipelines/channel/adapters/inbound/ReactiveKafkaMessageProducer.java,1\c\1c78f1e8de8b359d8c56251e862612b53e71c164
 

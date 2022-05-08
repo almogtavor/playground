@@ -11,4 +11,5 @@ include 'spring-integration-project-reactor'
 include 'project-reactor'
 include 'schema-solution'
 include 'mapstruct'
+include 'mapstruct-playground'
 

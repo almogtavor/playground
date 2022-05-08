@@ -84,6 +84,9 @@
       <module name="data-pipelines-samples-flink" target="11" />
       <module name="data-pipelines-samples-project-reactor" target="15" />
       <module name="data-pipelines-samples-reactive-spring-integration" target="11" />
+      <module name="data-pipelines-samples.mapstruct-playground.extra" target="17" />
+      <module name="data-pipelines-samples.mapstruct-playground.main" target="17" />
+      <module name="data-pipelines-samples.mapstruct-playground.test" target="17" />
       <module name="playground" target="11" />
       <module name="schema-solution" target="17" />
       <module name="schema-solution.generated" target="17" />
